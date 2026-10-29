@@ -4,6 +4,8 @@ A Gecko code to play **Metroid Prime Trilogy** (Wii, PAL **R3MP01**) with the **
 
 > **Status: pre1.0.** Tested on **Dolphin**. Testing on a real Wii (USB Loader GX) is in progress.
 
+![Controls](docs/controls.png)
+
 ## Features
 - **Twin-stick aiming in all three games:** left stick moves, right stick turns the camera with a centred reticle (based on PrimeHack).
 - **Visor and beam wheels:** hold the D-pad and pick with the right stick. In Prime 1 and 2, D-pad left/right also cycles beams, skipping the ones you don't have.
@@ -68,9 +70,8 @@ More detail in [docs/GUIDE.md](docs/GUIDE.md).
 | `codes/R3MP01.gct` | The code, for the Wii (USB Loader GX) |
 | `codes/R3MP01.txt` | The code in the cheat-manager text format |
 | `codes/classic_controller.txt` | The code on its own, to paste by hand |
-| `docs/` | English guide, Spanish guide (`GUIA.md`) and the uncompressed code list |
+| `docs/` | English guide, Spanish guide (`GUIA.md`), controls image and the uncompressed code list |
 | `src/` | Generator for the code (PowerPC assembly → compressed Gecko code) |
-| `tests/` | Emulator tests (see `tests/LEEME.txt`) |
 
 To rebuild the code: `pip install keystone-engine`, then `python src/base.py out`. It writes the files to `out/` and gives the same `R3MP01.gct` byte for byte. (Comments in the source are in Spanish.)
 
