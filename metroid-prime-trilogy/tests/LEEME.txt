@@ -1,0 +1,7 @@
+Pruebas en un emulador (Unicorn) con los .dol de Trilogy y el gestor de códigos.
+No se incluyen ni los .dol del disco ni el codehandler.bin:
+- DOLS = carpeta con rs5fe_p.dol, rs5mp1_p.dol, rs5mp2_p.dol y rs5mp3_p.dol (extraídos de tu disco).
+- tests/emu/codehandler.bin = el codehandler.bin de Dolphin (Sys/codehandler.bin de la instalación).
+Uso: pip install unicorn keystone-engine capstone
+     DOLS=<carpeta> python tests/pruebas_base.py      (pre1.0: 269 bien, 0 fallos)
+     DOLS=<carpeta> python tests/loadsim_mid.py
