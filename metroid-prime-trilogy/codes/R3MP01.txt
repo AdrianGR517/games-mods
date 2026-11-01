@@ -1,7 +1,7 @@
 R3MP01
 Metroid Prime Trilogy
 
-CC Trilogy base pre1.0 - MP1, MP2 y MP3
+Classic Controller pre1.0
 C0000000 00000172
 9421FCA0 BE210010
 7E2802A6 3F208000

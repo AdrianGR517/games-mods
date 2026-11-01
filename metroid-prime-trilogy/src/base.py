@@ -1,18 +1,18 @@
-"""Rama nueva (desde cero, 2026-10-26): bloque base del mod Classic Controller para Metroid Prime Trilogy (R3MP01).
+"""Mod Classic Controller para Metroid Prime Trilogy (R3MP01): generador del código Gecko.
 
-Un solo código Gecko SIN comprimir. El código común se escribe una vez y vale para los tres juegos y el menú:
+Un solo código Gecko (comprimido, ver final()). El código común se escribe una vez y vale para los tres juegos y el menú:
 
   C0 (no se ejecuta: empieza con blr)   núcleo común + función de saltar cinemáticas + constantes + tabla de botones
   bloque de cada juego (2046D340 firma + 20006138 guarda ... E0):
       parches fijos del juego (cámara FPS de PrimeHack, Nunchuk/extensión, bola muelle, cinemáticas vistas)
       C2 en la lectura del mando: r3 = estado del mando, r4 = FICHA del juego (solo datos), bl núcleo
       C2 en la consulta de saltar cinemática: llama a la original y luego a la función común
-      C2 en el menú HOME de la Wii: avisa al núcleo de que está abierto (n0.2: entonces funciona como un menú más)
+      C2 en el menú HOME de la Wii: avisa al núcleo de que está abierto (entonces funciona como un menú más)
 
 Los bl entre los C2 y el C0 son relativos y todo va en el mismo código, así que funciona esté donde esté en la
 lista de Dolphin (aunque haya otros códigos activados delante).
 
-Controles (pedidos por Adrián el 2026-10-26):
+Controles:
   Menús:    stick izq. = puntero (el derecho no hace nada), A/R = aceptar, B/ZL = atrás, cruceta = cruceta.
   Juego:    stick izq. = mover, stick der. = cámara con la mira centrada, A/R = disparar, ZR = misil, L = fijar,
             B/ZL = saltar, Y = morfosfera, − = mapa (MP1/MP2) o pausa (MP3), + = pausa (MP1/MP2) o hipermodo (MP3).
@@ -26,7 +26,7 @@ import os, struct, keystone
 ks = keystone.Ks(keystone.KS_ARCH_PPC, keystone.KS_MODE_PPC32 | keystone.KS_MODE_BIG_ENDIAN)
 VERSION = "pre1.0"
 LIMIT = 3272                       # bytes que caben en Dolphin (cabecera + códigos + final)
-# n0.6: la lista va comprimida dentro de un C0 (packer, descompresor y armado de la rama unificada: packer.py,
+# La lista va comprimida dentro de un C0 (compresor, descompresor y armado: packer.py,
 # unpack_asm.py, build_gct.py). Se descomprime en la tabla TRK (LIST = 0x80004180) cuando falla su suma de control.
 # NOCOMP=1 genera la lista sin comprimir (para comparar).
 COMPRESS = os.environ.get('NOCOMP') is None
@@ -39,47 +39,46 @@ WM = {'LEFT': 0x0001, 'RIGHT': 0x0002, 'DOWN': 0x0004, 'UP': 0x0008, 'PLUS': 0x0
       'B': 0x0400, 'A': 0x0800, 'MINUS': 0x1000, 'Z': 0x2000, 'C': 0x4000, 'HOME': 0x8000}
 
 # Tabla de botones (clásico -> Wiimote). Una entrada = (botón del Wiimote << 16) | botones del clásico | contextos.
-# n0.3: cada entrada lleva los contextos en los que vale (bits libres: 0x20/0x40/0x80 del Wiimote y 0x100 del
+# Cada entrada lleva los contextos en los que vale (bits libres: 0x20/0x40/0x80 del Wiimote y 0x100 del
 # clásico; el núcleo los quita antes de mandar el botón). El + manda el botón de pausa de cada juego (ficha 'pbtn'),
 # que el núcleo escribe en su entrada antes de usar la tabla.
-#   menú:  cruceta = cruceta, solo A acepta y solo B vuelve (n0.3: R y ZL ya no)
+#   menú:  cruceta = cruceta, solo A acepta y solo B vuelve
 #   pausa de MP1: cruceta izq./der. = − / + del Wiimote (opciones / banco de datos)
 #   mapa (MP1, MP2): cruceta arriba/abajo = + / − (zoom), L = Z (L + stick izq. = mover), stick izq. = girar y puntero
 #   juego: A/R, B/ZL, L, ZR, Y
-P2 = P3 = True                     # puntos 2 (pausa de MP1) y 3 (mapa) de la n0.3 (para medir lo que ocupa cada uno)
-# Quitados en la n0.3 a petición de Adrián (para ahorrar espacio; el código se queda aquí por si se recupera):
-# n0.8b: la mano de MP3 tiene la zona muerta del stick der. (ADZ): al soltar el stick, su vuelta al centro (que se pasa un
-# poco al otro lado) movía la mano hacia atrás = «rebote».
-# n0.8 (Adrián 2026-10-28): en el aviso de salir de la partida de MP1 (CQuitScreen, dentro de la pausa) la cruceta
-# izq./der. vuelve a ser la del Wiimote: un C2 en su ProcessUserInput (0x80154DA0) usa el aviso del menú HOME (tabla de menús).
-# n0.7 (Adrián 2026-10-27): el mapa de MP3 como en el mod de MP3: stick izq. = solo puntero, stick der. = girar,
-# L + stick der. = desplazar (L = Z). Solo en MP3: MP1 y MP2 siguen girando con el izquierdo.
+P2 = P3 = True                     # cruceta en la pausa de MP1 / controles del mapa (para medir lo que ocupa cada uno)
+# La mano de MP3 usa la zona muerta del stick (ADZ): sin ella, la vuelta del stick al centro (que se pasa un poco al
+# otro lado) movía la mano hacia atrás al soltarlo.
+# En el aviso de salir de la partida de MP1 (CQuitScreen, dentro de la pausa) la cruceta izq./der. vuelve a ser la del
+# Wiimote: un C2 en su ProcessUserInput (0x80154DA0) usa el aviso del menú HOME (tabla de menús).
+# Mapa de MP3: stick izq. = solo puntero, stick der. = girar, L + stick der. = desplazar (L = Z).
+# MP1 y MP2 giran el mapa con el stick izquierdo.
 MAP_RS = True                      # en el mapa de MP3 (aviso V_MAPC), stick der. = stick del Nunchuk
-MAP_MP3 = True                     # mapa de MP3 con el aviso del C2 en 0x801615D4
-# n0.7: ruletas: tras WHEEL_CENTER_FRAMES sin tocar el stick der. (n0.8c: 0,7 s), el puntero vuelve al centro
+MAP_MP3 = True                     # mapa de MP3 con el aviso del C2 en MP3_MAP_HOOK
+# Ruletas: tras WHEEL_CENTER_FRAMES (0,7 s) sin tocar el stick der., el puntero vuelve al centro
 WHEEL_CENTER_FRAMES = 42
-# n0.4: ruletas (pedido de Adrián 2026-10-26): jugando, cruceta arriba = − del Wiimote mantenido (ruleta de visores, los
+# Ruletas: jugando, cruceta arriba = − del Wiimote mantenido (ruleta de visores, los
 # tres juegos) y cruceta abajo = + mantenido (ruleta de rayos, solo MP1/MP2). Sin ficha: la cruceta abajo manda el + del
 # Wiimote solo si el + del clásico no lo usa ya (MP1/MP2: + = 2 = pausa; MP3: + = hipermodo, no hay rayos). Mientras se mantiene (y el frame en que se suelta, que es cuando el juego elige) la cámara
 # no se mueve y el stick derecho lleva el puntero con imanes: se pega a la opción hacia la que apunta (arriba o abajo a
 # un lado); sin tocarlo se queda donde estaba (al abrir, en el centro = visor/rayo normal).
 WHEEL = True
-# n0.5 (Adrián 2026-10-26): MP3, secciones "con la mano" (consolas, paneles, códigos), como en el mod de MP3: jugando con la
+# MP3, secciones "con la mano" (consolas, paneles, códigos): jugando con la
 # cámara libre, si el juego no deja moverse a Samus (orden 0 desactivada en el ControlMapper del jugador, ficha 'abil'),
 # el stick izquierdo mueve la mano (relativo, se queda al soltar, con límites) y el derecho sigue moviendo la cámara.
 HAND = True
-INT_SENS = MENU_SENS_HAND = 0.020   # velocidad de la mano con el stick a tope (la del mod de MP3)
-INT_LIM_X, INT_LIM_Y = 0.50, 0.55   # límites de la mano (los del mod de MP3, v0.13b)
-HAND_SOFT = 0.10                   # n0.10: en los últimos 0,10 hacia el tope horizontal la mano frena poco a poco (si se
-                                   # paraba de golpe en el tope, el juego seguía un poco y volvía: rebote en los lados)
-# n0.6 (Adrián 2026-10-26): controles de movimiento de MP3 como en el mod de MP3 (parches de PrimeHack para Trilogy PAL):
+INT_SENS = MENU_SENS_HAND = 0.020   # velocidad de la mano con el stick a tope
+INT_LIM_X, INT_LIM_Y = 0.50, 0.55   # límites de la mano (los mismos que el puntero del juego)
+HAND_SOFT = 0.10                   # en los últimos 0,10 hacia el tope horizontal la mano frena poco a poco (si se
+                                   # para de golpe en el tope, el juego sigue un poco y vuelve: rebote en los lados)
+# Controles de movimiento de MP3 (parches de PrimeHack para Trilogy PAL):
 # - gancho/látigo: L + X lo lanza; con el látigo enganchado, el stick izq. hacia abajo tira (+LASSO_STEP por frame;
 #   al llegar a 1 se arranca); si no, la tensión baja;
 # - agitar (quitarse enemigos de encima): mantener X;
 # - cerraduras de combinación y escáneres ADN: stick izq. a los lados (±ROT, todo o nada pasado la mitad);
 # - palancas, asas, sacar/meter (CScriptContextSensitiveAction, vive en un RSO): con la mano, stick izq. en la
-#   dirección de cada paso (±LEVER_STEP por frame pasado la mitad), como la v0.13 del mod.
-CYCLE = True                       # n0.10: MP1/MP2, cruceta izq./der. jugando = rayo anterior/siguiente (saltando los que no tienes)
+#   dirección de cada paso (±LEVER_STEP por frame pasado la mitad).
+CYCLE = True                       # MP1/MP2, cruceta izq./der. jugando = rayo anterior/siguiente (saltando los que no tienes)
 GESTOS = True
 G_LASSO = G_SHAKE = G_LOCKS = G_LEVERS = True   # por partes, para medir lo que ocupa cada una
 LASSO_STEP, LEVER_STEP = 0.045, 0.050
@@ -89,7 +88,7 @@ F['all'] = sum(F.values())
 def table_def():
     T = [('UP', 'UP', 'menu pause'), ('DOWN', 'DOWN', 'menu pause'), ('LEFT', 'LEFT', 'menu map'),
          ('RIGHT', 'RIGHT', 'menu map')]
-    if P3: T += [('UP', 'PLUS', 'map'), ('DOWN', 'MINUS', 'map')]   # n0.10: Y = leyenda = C (la entrada de jugar vale también en el mapa)
+    if P3: T += [('UP', 'PLUS', 'map'), ('DOWN', 'MINUS', 'map')]   # Y = leyenda = C (la entrada de jugar vale también en el mapa)
     if P2: T += [('LEFT', 'MINUS', 'pause'), ('RIGHT', 'PLUS', 'pause')]
     T += [('A', 'A', 'menu map pause'), ('B', 'B', 'menu map pause'), ('R|A', 'A', 'game'), ('B|ZL', 'B', 'game'),
           ('MINUS', '1', 'all'), ('HOME', 'HOME', 'all'), ('PLUS', None, 'all'),
@@ -104,7 +103,7 @@ def table():
 def wdn_idx(): return len(table_def()) - 1     # entrada de la ruleta de rayos (cruceta abajo)
 PFLAGS = F['all'] >> 16 & 0xffff   # contextos del + (parte alta), que van con el botón de pausa de la ficha
 
-# --- ajustes (los de MP3 v1.1, probados) ------------------------------------------------------------------------
+# --- ajustes (los mismos que el mod de Metroid Prime 3) ------------------------------------------------------------------------
 YAW_RATE, PITCH_RATE, AXIS_DZ, PITCH_MAX = 0.060, 0.040, 0.12, 1.52
 DZ = 0.15                          # zona muerta del puntero de menús
 MENU_SENS, MENU_BASE, MENU_SMOOTH, MENU_LIM_X = 0.020, 0.45, 0.35, 0.80
@@ -118,8 +117,7 @@ K = [('ONE', 1.0), ('ZERO', 0.0), ('HALF', 0.5), ('SIXTH', 1 / 6), ('INV24', 1 /
      ('DZ2', DZ * DZ), ('ADZ', AXIS_DZ), ('YAW', YAW_RATE), ('PITCH', PITCH_RATE), ('PMAX', PITCH_MAX), ('PMIN', -PITCH_MAX),
      ('MSENS', MENU_SENS), ('MBASE', MENU_BASE), ('MCUR', 1 - MENU_BASE), ('MSM', MENU_SMOOTH),
      ('MSX', MENU_ASPECT ** -0.5), ('MSY', -(MENU_ASPECT ** 0.5)), ('MLX', MENU_LIM_X)]
-# n0.4: posiciones de las opciones de las ruletas (las de MP3 v0.15c, medidas con capturas de Adrián; las de MP1/MP2 son
-# iguales, u0.6). En coordenadas del stick (y+ = arriba): lados (±WSX, WSY), arriba (0, WTY), centro (0, 0).
+# Posiciones de las opciones de las ruletas (medidas en capturas de MP3; las de MP1/MP2 son iguales). En coordenadas del stick (y+ = arriba): lados (±WSX, WSY), arriba (0, WTY), centro (0, 0).
 WHEEL_SIDE_X, WHEEL_SIDE_Y, WHEEL_TOP_Y = 0.202, -0.168, 0.388
 if WHEEL: K += [('WSX', WHEEL_SIDE_X), ('WSY', WHEEL_SIDE_Y), ('WTY', WHEEL_TOP_Y)]
 if GESTOS: K += [('LSTEP', LASSO_STEP), ('LEVER', LEVER_STEP)]
@@ -134,10 +132,10 @@ VAR = 0x80005900
 V = VAR & 0xffff
 V_CLHOLD, V_SKIPT, V_SKIPON, V_PBLK, V_SPRC = 0x1c, 0x20, 0x24, 0x28, 0x2c
 V_ACCF, V_ACC, V_RX, V_RY, V_PX, V_PY, V_VX, V_VY = 0x44, 0x48, 0x54, 0x58, 0x5c, 0x60, 0x78, 0x7c
-V_LASSO, V_HANDX, V_HANDY, V_ROT = 0x08, 0x0c, 0x10, 0x14   # n0.6: estado del látigo, tensión (x, x/4), giro
+V_LASSO, V_HANDX, V_HANDY, V_ROT = 0x08, 0x0c, 0x10, 0x14   # estado del látigo, tensión (x, x/4), giro
 V_SPRING = 0x84                    # (byte) lo leen los parches de bola muelle
-V_CYC = 0x18                       # n0.10: petición de cambio de rayo (-1 / +1)
-V_CUTC, V_HBMC, V_MAPC, V_WT = 0x30, 0x34, 0x38, 0x3c   # n0.7: contadores seguidos (antes 0x88..0x90, que pisaba la tabla del descompresor); V_WT = frames sin stick en la ruleta
+V_CYC = 0x18                       # petición de cambio de rayo (-1 / +1)
+V_CUTC, V_HBMC, V_MAPC, V_WT = 0x30, 0x34, 0x38, 0x3c   # contadores seguidos; V_WT = frames sin stick en la ruleta
 MAPCNT = 4                         # MP3: frames que dura el aviso de "mapa abierto" (el juego lo renueva cada frame)
 
 # --- ficha de cada juego (solo datos; r30 en el núcleo) ---------------------------------------------------------
@@ -148,11 +146,11 @@ MAPCNT = 4                         # MP3: frames que dura el aviso de "mapa abie
 #   pbtn = botón del Wiimote para el + del clásico, ball = morfosfera, move = en el aire (bola muelle solo en el suelo),
 #   ctl = estado de control (MP3: si no es 1, puntero), orb = estado de órbita,
 #   orb2 = (orbl << 8) | orbv en bytes: orbl = valor "sin cámara" (0xFF = no hay), orbv = valor "cámara libre aunque esté
-#   fijado" (gancho/látigo); abil = byte del jugador que vale 0 en las secciones con la mano (n0.5; 0 = no hay: lee el
+#   fijado" (gancho/látigo); abil = byte del jugador que vale 0 en las secciones con la mano (0 = no hay: lee el
 #   primer byte del jugador, que es el de su vtable, 0x80),
 #   pitch, xf (matriz), angmom, angvel, angk = constante que se escribe en angmom/angvel, arm1/arm2 = arma,
 #   mpv = valores del byte de menú: (mapa << 8) | pausa con pestañas. Contexto mapa = byte de 1 hasta "mapa"
-#   (n0.3b: MP2 3 = mapa y pausa, que también enseña el mapa); 0 = no hay
+#   (MP2: 3 = mapa y pausa, que también enseña el mapa); 0 = no hay
 PW = ['pl1', None, 'menu', 'ing', 'lock', 'arms', 'curb']      # None = hueco de pl2/pbtn (medias palabras)
 PH = ['ball', 'move', 'ctl', 'orb', 'orb2', 'pitch', 'xf', 'angmom', 'angvel', 'angk', 'arm1', 'arm2', 'mpv']
 if HAND: PH += ['abil']
@@ -209,8 +207,8 @@ CAM = {
           (0x80137240, 0x60000000), (0x8008d18c, 0x60000000), (0x8008d15c, 0x60000000), (0x80145474, 0x48000050)],
 }
 # MP3: el mapa no tiene byte propio. 0x80161594 (lwz r3,0x7bc(r29)) solo se ejecuta con la pausa en la pantalla del
-# mapa (gestor de la GUI +0x89C = 2): ahí se avisa. n0.9: antes era 0x801615D4, que solo corre si +0x7C0 = 0, pero
-# en Trilogy el mapa de la pausa es la MapScreen (SMapScreenWebInterface, en +0x7C0), así que nunca saltaba.
+# mapa (gestor de la GUI +0x89C = 2): ahí se avisa. En Trilogy el mapa de la pausa es la MapScreen
+# (SMapScreenWebInterface, en +0x7C0); 0x801615D4 solo corre si +0x7C0 = 0, así que no sirve.
 MP3_MAP_HOOK = (0x80161594, "lwz 3,0x7bc(29)")
 # MP3: estado de control (PrimeHack). En 0x8000AB58 (stw r6,0x78(r3)) el juego no lo escribe si el objeto es el jugador.
 MP3_CTRL_HOOK = 0x8000ab58
@@ -224,7 +222,7 @@ MP3_CTRL_SRC = """  lis 3,0x805d
   stw 6,0x78(31)
 """
 
-# n0.6: parches fijos de los controles de movimiento de MP3 (los de PrimeHack para Trilogy PAL, comprobados en
+# Parches fijos de los controles de movimiento de MP3 (los de PrimeHack para Trilogy PAL, comprobados en
 # rs5mp3_p.dol, con nuestras variables). Los lee/escribe el núcleo (gest_src).
 MP3_LASSO_F1 = 0x800dde44          # ProcessGrappleLasso (empieza en 0x800DDE0C)
 MP3_LASSO_F2 = 0x8017063c          # animación del brazo tirando
@@ -337,7 +335,7 @@ ctxmap:
 nomapst:
 """ if P3 and MAP_RS else ""
     UP = CL['UP']
-    # n0.5: mano (MP3). abil = byte del ControlMapper del jugador (+0x35D8 + 4 = orden 0 activada); 0 = sin moverse.
+    # Mano (MP3). abil = byte del ControlMapper del jugador (+0x35D8 + 4 = orden 0 activada); 0 = sin moverse.
     # La mano va en RX/RY (como la mira): se suma el stick izq. y se limita; en el resto del modo FPS vale 0.
     hand_src = f"""  lhz 3,{P['abil']}(30)
   lbzx 3,28,3
@@ -381,16 +379,15 @@ nomapst:
   b rdone
 notint:
 """ if HAND else ""
-    # n0.6: controles de movimiento de MP3 (solo jugando y solo en MP3: es el único con 'abil' en la ficha). Lo leen los
+    # Controles de movimiento de MP3 (solo jugando y solo en MP3: es el único con 'abil' en la ficha). Lo leen los
     # parches fijos de MP3 (ver MP3_GEST). f13 = 0,5 todo el rato.
     # - giro de cerraduras/ADN: V_ROT = ±ROT_RATE con el stick izq. a un lado pasado la mitad, si no 0
     # - látigo (blanco fijado de tipo orbv = 2): tensión en V_HANDX, sube LSTEP por frame con el stick izq. abajo
     #   (pasado la mitad) y si no baja; V_LASSO = 2, o 4 (arrancado) al llegar a 1; sin látigo, 0. V_HANDY = tensión / 4
-    # - palancas/asas (v0.13 del mod de MP3): con el stick izq. pasado la mitad, recorre la lista de objetos y a cada
+    # - palancas/asas: con el stick izq. pasado la mitad, recorre la lista de objetos y a cada
     #   CScriptContextSensitiveAction agarrada (estado 3) le suma ±LEVER a su avance (+0x154) según el stick en el eje de
-    #   su paso. n0.9 (visto en RSO_ScriptContextSensitiveAction.rso): el tipo de gesto es +0x1E4 (0 = meter/sacar ->
-    #   stick adelante/atrás; 1 y 2 = girar -> stick a los lados, con el signo cambiado en la n0.10) y el signo, +0x1E8. Antes miraba +0xD0 (es una
-    #   animación) y +0x210 (está fuera del objeto, que acaba en +0x210): por eso girar la célula iba al azar.
+    #   su paso. Según RSO_ScriptContextSensitiveAction.rso, el tipo de gesto es +0x1E4 (0 = meter/sacar ->
+    #   stick adelante/atrás; 1 y 2 = girar -> stick a los lados, con el signo de x cambiado) y el signo, +0x1E8.
     gest_src = f"""  cmpwi 26,0x{F['game']:x}
   bne gdone
   lhz 3,{P['abil']}(30)
@@ -504,15 +501,15 @@ lv_next:
 """ if G_LEVERS else "") + "gdone:\n" if GESTOS else ""
     assert not GESTOS or (ROT_RATE == dict(K)['PITCH'] and HAND)
     assert not HAND or (dict(K)['MSENS'] == INT_SENS and dict(K)['HALF'] == INT_LIM_X and abs(dict(K)['MCUR'] - INT_LIM_Y) < 1e-9)
-    # n0.4: botón del Wiimote de la ruleta de rayos (cruceta abajo) = + del Wiimote si el + del clásico manda otro
+    # Botón del Wiimote de la ruleta de rayos (cruceta abajo) = + del Wiimote si el + del clásico manda otro
     # (bit 0x100 = 2 del Wiimote en 'pbtn' -> 0x10), si no 0 (MP3)
-    # n0.10: la entrada cruceta abajo (jugando) = el + en MP1/MP2 (pbtn = 2: ruleta de rayos) y el 2 en MP3 (pbtn = +):
+    # La entrada cruceta abajo (jugando) = el + en MP1/MP2 (pbtn = 2: ruleta de rayos) y el 2 en MP3 (pbtn = +):
     # la pista. r3 = pbtn con los bits de contexto (0xE0), así que se sacan los dos bits sueltos. El menú no la usa.
     wpatch = f"""  rlwinm 0,3,28,27,27
   rlwimi 0,3,4,23,23
   sth 0,{TAB + 4 * wdn_idx()}(7)
 """ if WHEEL else ""
-    # n0.6 (comprimido): las dos entradas que se parchean por juego vuelven a su valor de fábrica tras la tabla, para
+    # Con la lista comprimida, las dos entradas que se parchean por juego vuelven a su valor de fábrica tras la tabla, para
     # que la suma de control de la lista no cambie cada frame (si cambiara, se descomprimiría cada frame)
     T0 = table()[0]
     trest = (f"""  li 0,0x{T0[T_PLUS_IDX] >> 16:x}
@@ -520,7 +517,7 @@ lv_next:
 """ + (f"""  li 0,0x{T0[wdn_idx()] >> 16:x}
   sth 0,{TAB + 4 * wdn_idx()}(7)
 """ if WHEEL else "")) if COMPRESS else ""
-    # n0.10: cambio de rayo (MP1/MP2): jugando, cruceta izq./der. recién pulsada deja la petición -1/+1 en V_CYC (la gasta
+    # Cambio de rayo (MP1/MP2): jugando, cruceta izq./der. recién pulsada deja la petición -1/+1 en V_CYC (la gasta
     # el C2 de cada juego en el cambio de rayo, cyc_src); fuera de jugar se borra. MP3 y el menú no la leen.
     cyc_req = f"""  rlwinm 0,5,17,31,31
   rlwinm 3,5,31,31,31
@@ -935,10 +932,10 @@ writecur:
 """ + wcode
 
 def cyc_src():
-    """n0.10: cambio de rayo con la cruceta (MP1/MP2), común. Lo llama el C2 del cambio de rayo de cada juego con
+    """Cambio de rayo con la cruceta (MP1/MP2), común. Lo llama el C2 del cambio de rayo de cada juego con
     r10 = rayo actual, r6 = inventario (si no es un puntero, nada), r5 = (tamaño de cada entrada << 16) | desplazamiento
     del "lo tienes", r9 = orden de los rayos (un byte cada uno). Gasta la petición de V_CYC y devuelve r4 = rayo nuevo
-    (el siguiente que tengas en ese sentido) o -1. Usa r0, r3-r6, r8-r12 y ctr (como la u0.8 de la rama unificada)."""
+    (el siguiente que tengas en ese sentido) o -1. Usa r0, r3-r6, r8-r12 y ctr."""
     return f"""
 cyc:
   lis 12,0x{VAR >> 16:x}
@@ -1025,7 +1022,7 @@ def asm(src, addr):
 
 def core_data():
     """constantes y tabla de botones (van detrás del bl data_end). Se meten después de ensamblar: keystone a veces
-    falla al azar con muchos .long (n0.3b), así que en el código van como trap y aquí se sustituyen."""
+    falla al azar con muchos .long, así que en el código van como trap y aquí se sustituyen."""
     return b''.join(struct.pack('>I', f2u(v)) for _, v in K) + b''.join(struct.pack('>I', t) for t in table()[0])
 
 def asm_core(addr):
@@ -1118,7 +1115,7 @@ def build():
                         f"  lis 9,0x{Bm['order'] >> 16:x}\n  ori 9,9,0x{Bm['order'] & 0xffff:x}\n")
             post = words(f"  cmpwi 4,0\n  blt cnone\n  mr {Bm['beamreg']},4\n  mr {Bm['pidreg']},4\ncnone:\n  {Bm['orig']}\n")
             B.add_c2(Bm['at'], pre + [None] + post, rel=[(len(pre), at['cyc'])])
-        # menú HOME (y n0.8: aviso de salir de MP1, CQuitScreen::ProcessUserInput): mientras corre, tabla de menús
+        # menú HOME (y aviso de salir de MP1, CQuitScreen::ProcessUserInput): mientras corre, tabla de menús
         for hk in ('hbm', 'quit'):
             if hk not in G: continue
             ha, horig = G[hk]
@@ -1129,7 +1126,7 @@ def build():
     return B.L, codes, at, sizes
 
 def final():
-    """Lo que va en el .gct: la lista tal cual o (n0.6) un C0 con el descompresor y la lista comprimida.
+    """Lo que va en el .gct: la lista tal cual o un C0 con el descompresor y la lista comprimida.
     Devuelve (lista en texto, códigos del .gct, offsets del C0 común, tamaños, info de la compresión)."""
     L, codes, at, sizes = build()
     if not COMPRESS: return L, codes, at, sizes, None
@@ -1145,7 +1142,7 @@ def final():
 def write_outputs(outdir):
     L, codes, at, sizes, info = final()
     gct = bytes.fromhex('00D0C0DE00D0C0DE') + codes + bytes.fromhex('F000000000000000')
-    name = f"CC Trilogy base {VERSION} - MP1, MP2 y MP3 [Claude]"
+    name = f"Classic Controller {VERSION}"
     os.makedirs(outdir, exist_ok=True)
     open(os.path.join(outdir, 'R3MP01.gct'), 'wb').write(gct)
     CL_ = ['%s %s' % (codes[i:i + 4].hex().upper(), codes[i + 4:i + 8].hex().upper()) for i in range(0, len(codes), 8)]
@@ -1155,7 +1152,7 @@ def write_outputs(outdir):
     open(os.path.join(outdir, 'R3MP01.ini'), 'w', newline='\r\n').write('\n'.join(ini))
     open(os.path.join(outdir, f'gecko-{VERSION}.txt'), 'w', newline='\r\n').write('$' + name + '\n' + '\n'.join(L) + '\n')
     # formato del gestor de trucos de USB Loader GX (sd:/txtcodes/R3MP01.txt)
-    txt = ['R3MP01', 'Metroid Prime Trilogy', '', name.replace(' [Claude]', '')] + L + ['']
+    txt = ['R3MP01', 'Metroid Prime Trilogy', '', name] + L + ['']
     open(os.path.join(outdir, 'R3MP01.txt'), 'w', newline='\r\n').write('\n'.join(txt) + '\n')
     return L, gct, at, sizes, info
 

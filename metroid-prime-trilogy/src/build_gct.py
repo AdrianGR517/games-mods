@@ -8,7 +8,7 @@ LIST = 0x80004180
 def asm(src, addr=0):
     e, _ = ks.asm(src, addr); return bytes(e)
 F0LINE = bytes.fromhex('F000000000000000')
-PROBS = 0x80005990                     # n0.9: la tabla va en la pila; esto solo marca el final de las variables
+PROBS = 0x80005990                     # la tabla va en la pila; esto solo marca el final de las variables
 PROBS_END = 0x80005C88                 # (la tabla TRK es ceros hasta 0x80005D34 en los 4 .dol)
 RET = 0x80005C88                       # dirección del código que sigue al C0 grande (la escribe el C0 cada vez)
 def build(payload, cfg=None, blob=None):

@@ -20,7 +20,7 @@ There is a single code for the whole Trilogy: the Trilogy menu, Prime 1, Prime 2
 2. **Copy the code:** put `R3MP01.ini` in `Documents/Dolphin Emulator/GameSettings/`. Back up any existing `R3MP01.ini` first, as it will be overwritten.
    - Alternative: right-click the game → *Properties → Gecko Codes → Add*, and paste `classic_controller.txt`.
 3. **Set up the controller:** *Controllers → Wii Remote 1: Emulated Wii Remote → Configure*, set **Extension** to **Classic Controller** and map its buttons to your pad.
-4. In *Properties → Gecko Codes*, tick **only** "CC Trilogy base pre1.0". Don't enable older versions or other controller codes at the same time: they all change the controls.
+4. In *Properties → Gecko Codes*, tick **only** "Classic Controller pre1.0". Don't enable older versions or other controller codes at the same time: they all change the controls.
 
 ## Wii (USB Loader GX)
 1. Copy `R3MP01.gct` to `SD:/codes/R3MP01.gct` (create the `codes` folder at the root of the SD card if needed, and remove any other `R3MP01.gct`).
@@ -31,7 +31,7 @@ There is a single code for the whole Trilogy: the Trilogy menu, Prime 1, Prime 2
    - **Alternate DOL: Off.** Boot Trilogy normally and choose the game from its menu. The loader hooks the code again every time the Trilogy menu starts one of the games.
 3. Plug the Classic Controller into the Wii Remote and start the game. **Don't touch the sticks while it loads:** the Wii takes that position as the centre.
 
-**If the loader says it can't find the cheat file:** copy `R3MP01.txt` to `SD:/txtcodes/R3MP01.txt`, open the game's cheat manager in USB Loader GX, tick "CC Trilogy base pre1.0" and choose *Create GCT* (it creates the same file as `R3MP01.gct`).
+**If the loader says it can't find the cheat file:** copy `R3MP01.txt` to `SD:/txtcodes/R3MP01.txt`, open the game's cheat manager in USB Loader GX, tick "Classic Controller pre1.0" and choose *Create GCT* (it creates the same file as `R3MP01.gct`).
 
 ## Controls
 See the tables in the [README](../README.md#controls).

@@ -1,36 +1,37 @@
-# Mod Classic Controller para Metroid Prime Trilogy – pre1.0 (para probar en la Wii)
+# Mod Classic Controller para Metroid Prime Trilogy (pre1.0)
 
-Disco: **R3MP01** (Trilogy PAL). Es la n0.10 tal cual (mismo código, 2984 de 3272 B), solo cambia el nombre.
-En Dolphin salió bien todo lo probado (90 de 91; el rebote pequeño de la mano lo dejamos así).
+Código Gecko para jugar a **Metroid Prime Trilogy** (Wii, PAL **R3MP01**) con el **mando clásico**: Metroid Prime,
+Metroid Prime 2: Echoes, Metroid Prime 3: Corruption y el menú de Trilogy, todo en un solo código.
 
-## Comprobado para la Wii (USB Loader GX)
-- **Sitio para los códigos:** USB Loader GX pone la lista en 0x800022A8 y admite hasta **3416 B**: el .gct (2984 B) cabe.
-  (Dolphin admite 3272 B; también cabe.)
-- **Su gestor de códigos:** he pasado las 269 pruebas del emulador con el gestor de USB Loader GX en vez del de Dolphin:
-  **0 fallos**, y la memoria del juego queda idéntica a la de Dolphin. La prueba de «cargar un juego a mitad de
-  descomprimir» también acaba igual que una carga limpia.
-- **Cambiar de juego desde el menú de Trilogy:** USB Loader GX vuelve a enganchar los códigos cada vez que el menú
-  arranca MP1, MP2 o MP3 (busca la misma secuencia en el .dol nuevo). He comprobado que los cuatro .dol del disco la
-  tienen, y también el gancho «VBI». Así que se juega como en Dolphin: arrancas Trilogy y eliges el juego en su menú.
+**Estado:** probado en Dolphin; las pruebas en una Wii real (USB Loader GX) están en curso.
+
+## Archivos
+| Archivo | Uso |
+|---|---|
+| `codes/R3MP01.ini` | El código, ya activado, para Dolphin |
+| `codes/R3MP01.gct` | El código, para la Wii |
+| `codes/R3MP01.txt` | El código en texto, para el gestor de trucos de USB Loader GX |
+| `codes/classic_controller.txt` | El código solo, para pegarlo a mano |
+
+## Instalar en Dolphin
+1. Activa los trucos: *Configuración → General → Habilitar trucos*.
+2. Copia `R3MP01.ini` en `Documentos\Dolphin Emulator\GameSettings\` (guarda antes el tuyo si ya tenías uno).
+3. Pon el Wiimote 1 como *Wiimote emulado* con el **Mando Clásico** como extensión.
+4. En *Propiedades → Códigos Gecko* del juego, activa **solo** «Classic Controller pre1.0».
 
 ## Instalar en la Wii (USB Loader GX)
-1. Copia `gct\R3MP01.gct` a `SD:/codes/R3MP01.gct` (quita antes cualquier otro R3MP01.gct que tengas ahí).
+1. Copia `R3MP01.gct` a `SD:/codes/R3MP01.gct` (quita antes cualquier otro R3MP01.gct que haya ahí).
 2. En USB Loader GX, ajustes del juego (Trilogy):
    - **Ocarina: Sí.**
    - **Tipo de gancho (Hook Type): VBI** (el que viene por defecto). Si los controles no hacen nada, prueba AXNextFrame.
-   - **Depurador / Gecko debugger: No.** Con el depurador activado la lista va más arriba y solo caben 1864 B: el mod
-     no cargaría.
-   - **DOL alternativo: No.** Arranca Trilogy normal y elige el juego en su menú (el mod también lleva los controles
-     del menú de Trilogy).
+   - **Depurador / Gecko debugger: No.** Con el depurador activado solo caben 1864 B de códigos y el mod no cargaría.
+   - **DOL alternativo: No.** Arranca Trilogy normal y elige el juego en su menú: el cargador vuelve a enganchar los
+     códigos cada vez que el menú arranca uno de los juegos.
 3. Conecta el mando clásico al Wiimote antes de arrancar el juego. **No toques los sticks mientras arranca:** la Wii
    toma esa posición como el centro.
 4. Si el cargador dice que no encuentra el archivo de trucos: copia `R3MP01.txt` a `SD:/txtcodes/`, abre el gestor
-   de trucos del juego en USB Loader GX, marca «CC Trilogy base pre1.0» y crea el GCT desde ahí (sale igual que el
-   `R3MP01.gct`, comprobado).
-
-## Instalar en Dolphin (por si quieres seguir probando ahí)
-1. Copia `R3MP01.ini` en `Documentos\Dolphin Emulator\GameSettings\` (guarda antes el tuyo).
-2. Activa **solo** «CC Trilogy base pre1.0» y deja «Habilitar trucos» activado.
+   de trucos del juego en USB Loader GX, marca «Classic Controller pre1.0» y crea el GCT desde ahí (sale igual que
+   `R3MP01.gct`).
 
 ## Controles
 **Menús** (pausa, inventario, menú de Trilogy, menú HOME de la Wii y menús del juego)
@@ -108,14 +109,15 @@ En Dolphin salió bien todo lo probado (90 de 91; el rebote pequeño de la mano 
 | ZR | Bomba de energía |
 | Y | Salir de la morfosfera |
 
-**Cinemáticas:** mantener **+ 1 segundo** las salta en los tres juegos (sin cambios).
+**Cinemáticas:** mantener **+ 1 segundo** las salta en los tres juegos.
 
-## Qué comprobar en la Wii
-La lista de pruebas (la misma página) ya está puesta para la pre1.0: lo que fue bien en la n0.10 viene marcado, y hay
-una sección nueva con lo propio de la Wii.
-1. **Lo propio de la Wii:** arranca sin colgarse; los controles van en el menú de Trilogy; entrar y salir de MP1,
-   MP2 y MP3 varias veces sin cuelgues; guardar y cargar.
-2. **Lo que quedaba por probar:** gancho y látigo (cámara libre, columpiarse, tirar sin andar hacia atrás, la tensión),
-   agitar, escáneres de ADN, hipermodo, otras cosas de meter y sacar, y qué hace la Y en el mapa de MP3.
+## Problemas conocidos
+- **La mano de MP3 rebota un poco** al llevarla a tope a un lado de una consola.
+- **Los iconos del juego siguen siendo los del Wiimote y el Nunchuk.**
+- **Stick «atascado» al arrancar:** suelta los sticks y vuelve a conectar el mando.
+- **No caben otros códigos grandes:** el mod ocupa 2984 de los 3272 B que admite Dolphin.
 
-Si algo se cuelga o los controles dejan de ir, dime en qué momento (y qué tipo de gancho tenías puesto).
+## Cómo está hecho
+El mod completo ocupa 4144 B, más de lo que cabe, así que el código va **comprimido** (2984 B) y se descomprime solo
+en memoria libre al arrancar. La lógica de los controles se escribe una vez y la comparten los tres juegos; cada juego
+solo aporta sus direcciones. Para regenerarlo: `pip install keystone-engine` y `python src/base.py out`.

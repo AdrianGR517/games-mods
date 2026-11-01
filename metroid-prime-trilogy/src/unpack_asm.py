@@ -8,8 +8,8 @@ activados detrás de este siguen funcionando, y el F0 final es el del .gct.
 Se tocan r0, r3, r4 (a propósito), r5, r9, r10, cr0, ctr y XER[CA]; r17..r31 se guardan en la pila y se restauran.
 No se tocan r6..r8, r15, r16 ni cr1..cr7, que son el estado del gestor.
 
-n0.9: la tabla de probabilidades va en la pila (antes en 0x80005990, dentro de la zona que el menú pisa al cargar
-un .dol; si la pisaba a mitad de descomprimir, la copia se desbocaba hasta 0x81800000). Tras descomprimir se
+La tabla de probabilidades va en la pila: la zona TRK la pisa el menú al cargar un .dol, y si eso pasa a mitad de
+descomprimir la copia se desbocaría. Tras descomprimir se
 vuelve a comprobar la suma: si no cuadra (el .dol pisó la lista mientras tanto), no se ejecuta la lista este frame.
 Registros: r31 = LIST, r30 = tabla de probabilidades (r1 + 0x60), r28 = 0 hasta descomprimir, r29 = puntero de lectura (último byte leído),
 r28 = último byte escrito, r27 = último byte de la lista, r26 = code, r25 = range, r24 = KIND + 4*prev_copia, r23 = desplazamiento de la copia,
@@ -20,7 +20,7 @@ def decoder_asm(o, cfg, blob_off, list_addr, list_len, probs_addr, nprobs, ret_a
     assert list_addr & 31 == 0 and list_len & 3 == 0 and probs_addr & 1 == 0 and not cfg.LOWTREE
     assert list_addr >> 16 == 0x8000 and list_addr & 0xffff < 0x8000 and cfg.RANGE0 == 0x80000000
     assert (o['KIND'], o['REP'], o['LOW']) == (304, 312, 313) and cfg.REPM
-    FRAME = 0x60 + ((2*nprobs + 15) & ~15)    # n0.9: tabla de probabilidades en la pila (no la pisa la carga del .dol)
+    FRAME = 0x60 + ((2*nprobs + 15) & ~15)    # tabla de probabilidades en la pila (no la pisa la carga del .dol)
     norm = "" if cfg.NORM_ONCE else "  b nrm\n"
     return f"""
   stwu 1,-{FRAME}(1)

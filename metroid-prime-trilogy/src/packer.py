@@ -1,4 +1,4 @@
-"""Compresor LZ + codificador aritmético binario adaptativo (estilo LZMA) para el Gecko unificado.
+"""Compresor LZ + codificador aritmético binario adaptativo (estilo LZMA) para el código Gecko.
 El descompresor en PowerPC (unpack_asm.py) sigue exactamente el mismo modelo que decode() de aquí.
 
 Modelo (pensado para que el descompresor sea lo más corto posible):

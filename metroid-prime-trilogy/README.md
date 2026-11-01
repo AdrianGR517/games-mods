@@ -53,7 +53,7 @@ You need the **European PAL release of Metroid Prime Trilogy (R3MP01)**. Other r
 1. Enable cheats: *Config → General → Enable Cheats*.
 2. Copy [`codes/R3MP01.ini`](codes/R3MP01.ini) to `Documents/Dolphin Emulator/GameSettings/` (back up any existing `R3MP01.ini` first).
 3. Set Wii Remote 1 to *Emulated Wii Remote* and choose **Classic Controller** as the extension.
-4. In the game's *Properties → Gecko Codes*, tick **only** "CC Trilogy base pre1.0".
+4. In the game's *Properties → Gecko Codes*, tick **only** "Classic Controller pre1.0".
 
 **Wii (USB Loader GX)**
 1. Copy [`codes/R3MP01.gct`](codes/R3MP01.gct) to `SD:/codes/`.
