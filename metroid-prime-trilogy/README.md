@@ -85,7 +85,7 @@ Dolphin allows at most 3272 bytes of Gecko codes. The full mod is 4144 bytes, so
 ## Credits
 - Made by **AdrianGR517**, with the help of **Claude** (Anthropic's AI assistant), which wrote and debugged most of the PowerPC code and documentation together with him.
 - Camera and motion-control patches are based on [PrimeHack](https://github.com/shiiion/dolphin).
-- Sister project: [Metroid Prime 3 Classic Controller mod](https://github.com/AdrianGR517/metroid-prime-3-classic-controller).
+- Sister project: [Metroid Prime 3 Classic Controller mod](../metroid-prime-3/).
 
 ## License
 [MIT](LICENSE)
