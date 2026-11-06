@@ -1,6 +1,6 @@
-# games-mods
+# Games Mods
 
-Quality-of-life mods for games, mostly new control schemes. Each project lives in its own folder with its own README, guide, source and license.
+QoL mods for games, mostly new control schemes. Each project lives in its own folder with its own README, guide, source and license.
 
 | Project | Game | Status |
 |---|---|---|
