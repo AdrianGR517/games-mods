@@ -4,8 +4,8 @@ QoL mods for games, mostly new control schemes. Each project lives in its own fo
 
 | Project | Game | Status |
 |---|---|---|
-| [Metroid Prime 3 — Classic Controller](metroid-prime-3/) | Metroid Prime 3: Corruption (Wii, PAL RM3P01) | v1.01, tested on Dolphin and a real Wii |
-| [Metroid Prime Trilogy — Classic Controller](metroid-prime-trilogy/) | Metroid Prime Trilogy (Wii, PAL R3MP01) | pre1.0, tested on Dolphin |
+| [Metroid Prime 3 — Classic Controller](metroid-prime-3-classic-controller-mod/) | Metroid Prime 3: Corruption (Wii, PAL RM3P01) | v1.01, tested on Dolphin and a real Wii |
+| [Metroid Prime Trilogy — Classic Controller](metroid-prime-trilogy-classic-controller-mod/) | Metroid Prime Trilogy (Wii, PAL R3MP01) | pre1.0, tested on Dolphin |
 
 Both mods are Gecko codes that let you play with the Classic Controller using twin-stick controls, with no pointing and no motion gestures.
 
