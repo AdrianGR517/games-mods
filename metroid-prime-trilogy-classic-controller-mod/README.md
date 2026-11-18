@@ -2,7 +2,7 @@
 
 A Gecko code to play **Metroid Prime Trilogy** (Wii, PAL **R3MP01**) with the **Classic Controller** (or Classic Controller Pro), using twin-stick controls in the style of *Metroid Prime Remastered*. It covers **Metroid Prime**, **Metroid Prime 2: Echoes**, **Metroid Prime 3: Corruption** and the Trilogy menu, all in **one code**. No pointing at the screen and no motion gestures.
 
-> **Status: pre1.0.** Tested on **Dolphin**. Testing on a real Wii (USB Loader GX) is in progress.
+> **Status: pre1.1.** Tested on **Dolphin**. Testing on a real Wii (USB Loader GX) is in progress.
 
 ![Controls](docs/controls.png)
 
@@ -53,7 +53,7 @@ You need the **European PAL release of Metroid Prime Trilogy (R3MP01)**. Other r
 1. Enable cheats: *Config → General → Enable Cheats*.
 2. Copy [`codes/R3MP01.ini`](codes/R3MP01.ini) to `Documents/Dolphin Emulator/GameSettings/` (back up any existing `R3MP01.ini` first).
 3. Set Wii Remote 1 to *Emulated Wii Remote* and choose **Classic Controller** as the extension.
-4. In the game's *Properties → Gecko Codes*, tick **only** "Classic Controller pre1.0".
+4. In the game's *Properties → Gecko Codes*, tick **only** "Classic Controller pre1.1".
 
 **Wii (USB Loader GX)**
 1. Copy [`codes/R3MP01.gct`](codes/R3MP01.gct) to `SD:/codes/`.
@@ -76,7 +76,7 @@ More detail in [docs/GUIDE.md](docs/GUIDE.md).
 To rebuild the code: `pip install keystone-engine`, then `python src/base.py out`. It writes the files to `out/` and gives the same `R3MP01.gct` byte for byte. (Comments in the source are in Spanish.)
 
 ## How it fits
-Dolphin allows at most 3272 bytes of Gecko codes. The full mod is 4144 bytes, so the code is stored **compressed** (2984 bytes) and unpacks itself into free memory when the game starts. The controls logic is written once and shared by the three games; each game only adds its own addresses. Because of this, don't enable other large codes at the same time.
+Dolphin allows at most 3272 bytes of Gecko codes. The full mod is 4152 bytes, so the code is stored **compressed** (2984 bytes) and unpacks itself into free memory when the game starts. The controls logic is written once and shared by the three games; each game only adds its own addresses. Because of this, don't enable other large codes at the same time.
 
 ## Notes
 - The in-game button icons still show the Wii Remote and Nunchuk.

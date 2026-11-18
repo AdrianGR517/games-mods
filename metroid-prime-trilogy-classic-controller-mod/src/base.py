@@ -24,7 +24,7 @@ Controles:
 import os, struct, keystone
 
 ks = keystone.Ks(keystone.KS_ARCH_PPC, keystone.KS_MODE_PPC32 | keystone.KS_MODE_BIG_ENDIAN)
-VERSION = "pre1.0"
+VERSION = "pre1.1"
 LIMIT = 3272                       # bytes que caben en Dolphin (cabecera + códigos + final)
 # La lista va comprimida dentro de un C0 (compresor, descompresor y armado: packer.py,
 # unpack_asm.py, build_gct.py). Se descomprime en la tabla TRK (LIST = 0x80004180) cuando falla su suma de control.
@@ -55,13 +55,14 @@ P2 = P3 = True                     # cruceta en la pausa de MP1 / controles del 
 # MP1 y MP2 giran el mapa con el stick izquierdo.
 MAP_RS = True                      # en el mapa de MP3 (aviso V_MAPC), stick der. = stick del Nunchuk
 MAP_MP3 = True                     # mapa de MP3 con el aviso del C2 en MP3_MAP_HOOK
-# Ruletas: tras WHEEL_CENTER_FRAMES (0,7 s) sin tocar el stick der., el puntero vuelve al centro
-WHEEL_CENTER_FRAMES = 42
-# Ruletas: jugando, cruceta arriba = − del Wiimote mantenido (ruleta de visores, los
-# tres juegos) y cruceta abajo = + mantenido (ruleta de rayos, solo MP1/MP2). Sin ficha: la cruceta abajo manda el + del
-# Wiimote solo si el + del clásico no lo usa ya (MP1/MP2: + = 2 = pausa; MP3: + = hipermodo, no hay rayos). Mientras se mantiene (y el frame en que se suelta, que es cuando el juego elige) la cámara
-# no se mueve y el stick derecho lleva el puntero con imanes: se pega a la opción hacia la que apunta (arriba o abajo a
-# un lado); sin tocarlo se queda donde estaba (al abrir, en el centro = visor/rayo normal).
+# Ruletas: tras WHEEL_CENTER_FRAMES (0,5 s) sin tocar el stick der., el puntero vuelve al centro
+WHEEL_CENTER_FRAMES = 30
+# Ruletas: jugando, cruceta arriba = − del Wiimote mantenido (ruleta de visores, los tres juegos) y cruceta abajo = +
+# mantenido (ruleta de rayos, solo MP1/MP2). Sin ficha: la cruceta abajo manda el + del Wiimote solo si el + del clásico
+# no lo usa ya (MP1/MP2: + = 2 = pausa; MP3: + = hipermodo, no hay rayos). Mientras el juego tiene la ruleta abierta
+# (ficha wmb/wmo/wmv; también el frame en que se suelta, que es cuando elige) la cámara no se mueve y el stick derecho
+# lleva el puntero con imanes: se pega a la opción hacia la que apunta (arriba o abajo a un lado); sin tocarlo se queda
+# donde estaba (al abrir, en el centro = visor/rayo normal).
 WHEEL = True
 # MP3, secciones "con la mano" (consolas, paneles, códigos): jugando con la
 # cámara libre, si el juego no deja moverse a Samus (orden 0 desactivada en el ControlMapper del jugador, ficha 'abil'),
@@ -141,7 +142,8 @@ MAPCNT = 4                         # MP3: frames que dura el aviso de "mapa abie
 # --- ficha de cada juego (solo datos; r30 en el núcleo) ---------------------------------------------------------
 # palabras (direcciones): pl1 = dónde está el jugador, menu = byte distinto de 0 en menús (pausa, mapa...),
 #   ing = palabra que debe valer 1 para estar jugando (0 = no mirar), lock = byte de blanco fijado,
-#   arms = dirección del pitch del arma (0 = usar arm1/arm2), curb = base del cursor de la mira
+#   arms = dirección del pitch del arma (0 = usar arm1/arm2), curb = base del cursor de la mira,
+#   wmb = base de la ruleta (rayos/visores): está abierta si *(*wmb + wmo) == wmv
 # medias palabras (desplazamientos dentro del jugador, 0 = no hay): pl2 = segundo salto hasta el jugador,
 #   pbtn = botón del Wiimote para el + del clásico, ball = morfosfera, move = en el aire (bola muelle solo en el suelo),
 #   ctl = estado de control (MP3: si no es 1, puntero), orb = estado de órbita,
@@ -151,8 +153,8 @@ MAPCNT = 4                         # MP3: frames que dura el aviso de "mapa abie
 #   pitch, xf (matriz), angmom, angvel, angk = constante que se escribe en angmom/angvel, arm1/arm2 = arma,
 #   mpv = valores del byte de menú: (mapa << 8) | pausa con pestañas. Contexto mapa = byte de 1 hasta "mapa"
 #   (MP2: 3 = mapa y pausa, que también enseña el mapa); 0 = no hay
-PW = ['pl1', None, 'menu', 'ing', 'lock', 'arms', 'curb']      # None = hueco de pl2/pbtn (medias palabras)
-PH = ['ball', 'move', 'ctl', 'orb', 'orb2', 'pitch', 'xf', 'angmom', 'angvel', 'angk', 'arm1', 'arm2', 'mpv']
+PW = ['pl1', None, 'menu', 'ing', 'lock', 'arms', 'curb', 'wmb']      # None = hueco de pl2/pbtn (medias palabras)
+PH = ['ball', 'move', 'ctl', 'orb', 'orb2', 'pitch', 'xf', 'angmom', 'angvel', 'angk', 'arm1', 'arm2', 'mpv', 'wmo', 'wmv']
 if HAND: PH += ['abil']
 P = {k: 4 * i for i, k in enumerate(PW) if k}
 P['pl2'], P['pbtn'] = 4, 6
@@ -174,23 +176,24 @@ GAMES = {
               hbm=(0x800cc05c, "lwz 12,0x50(30)"), spring=0x8010712c, skip=(0x800b9f30, 0x800df018, 0x80062158),
               f=dict(pl1=0x805ca0e8, pl2=0x2184, pbtn=WM['PLUS'], menu=0x805cc1d7, lock=0x805ca237, curb=0x80673588,
                      ball=0x358, ctl=0x3aec, orb=0x370, orbl=1, orbv=2, pitch=0x784, xf=0x3c, abil=0x35dc,
-                     angmom=0x174, angvel=0x174, angk=KO['TINY'])),
+                     angmom=0x174, angvel=0x174, angk=KO['TINY'], wmb=0x8067357c, wmo=0x300, wmv=3)),
   'MP1': dict(sig=0x7c962378, guard=0x3CC0803A, khook=0x80331b38, kreg=29, korig="lfs 0,0xca0(28)", ext=0x80333e54,
               hbm=(0x800df018, "lwz 12,0x4c(30)"), quit=(0x80154da0, "stwu 1,-0x10(1)"),
               beam=dict(at=0x8018e844, orig="cmpwi 26,-1", gun=30, cur=0x310, beamreg=26, pidreg=25, order=0x00020103,
-                        pa="  lis 6,0x804c\n  lwz 6,0x3c14(6)\n  cmpwi 6,0\n  bge cz1\n  lwz 6,0(6)\ncz1:\n", size=8, off=0x30),
+                        pa="  mr 6,28\n", size=8, off=0x30),
               spring=0x80147830, skip=(0x800cf174, 0x8010822c, 0x802fc248),
               f=dict(pl1=SM1 + 0x84c, pbtn=WM['2'], menu=SM1 + 0x117c + 3, mpv=0x0102, lock=SM1 + 0xc93, arms=0x804c502c,
                      curb=0x805c6c2c, ball=0x2f4, move=0x25c, orb=0x300, orbl=0xffff, orbv=5, pitch=0x3dc, xf=0x2c,
-                     angmom=0x118, angvel=0x154, angk=KO['ZERO'])),
+                     angmom=0x118, angvel=0x154, angk=KO['ZERO'], wmb=0x805c6c34, wmo=0x32c, wmv=1)),
   'MP2': dict(sig=0x80830000, guard=0x3CC0803D, khook=0x8034e4d4, kreg=25, korig="lfs 0,0(24)", ext=0x80350804,
               hbm=(0x800cf2c8, "lwz 12,0x4c(3)"),
               beam=dict(at=0x8018e4e4, orig="cmpwi 31,-1", gun=27, cur=0x768, beamreg=31, pidreg=30, order=0x00010203,
-                        pa="  lis 6,0x804f\n  lwz 6,-0x3d4(6)\n  cmpwi 6,0\n  bge cz2\n  lwz 6,0x12ec(6)\ncz2:\n", size=12, off=0x5c),
+                        pa="  mr 6,25\n", size=12, off=0x5c),
               spring=0x8010d44c, skip=(0x800bdb9c, 0x800e9744, 0x80071c34),
               f=dict(pl1=SM2 + 0x14f4, pbtn=WM['2'], menu=SM2 + 0x2c0c + 3, mpv=0x0300, ing=SM2 + 0x153c, lock=SM2 + 0x1667,
                      curb=0x805d2d30, ball=0x374, move=0x2c4, orb=0x390, orbl=0xffff, orbv=5, pitch=0x5f0, xf=0x20,
-                     angmom=0x178, angvel=0x178 + 0x18, angk=KO['ZERO'], arm1=0xea8, arm2=0x3b0 + 0x24)),
+                     angmom=0x178, angvel=0x178 + 0x18, angk=KO['ZERO'], arm1=0xea8, arm2=0x3b0 + 0x24,
+                     wmb=0x805d2d80, wmo=0x340, wmv=1)),
   'FE':  dict(sig=0x7c0000d0, guard=0x3CC08046, khook=0x80372e4c, kreg=29, korig="lfs 0,0xca0(28)", ext=0x80375158,
               hbm=(0x800a1674, "lwz 12,0x50(30)"),
               f=dict(pl1=0x80000000, pbtn=WM['1'])),        # *(0x80000000) = ID del disco (positivo) = sin jugador
@@ -334,7 +337,6 @@ ctxmap:
   stfs 4,0x64(29)
 nomapst:
 """ if P3 and MAP_RS else ""
-    UP = CL['UP']
     # Mano (MP3). abil = byte del ControlMapper del jugador (+0x35D8 + 4 = orden 0 activada); 0 = sin moverse.
     # La mano va en RX/RY (como la mira): se suma el stick izq. y se limita; en el resto del modo FPS vale 0.
     hand_src = f"""  lhz 3,{P['abil']}(30)
@@ -532,15 +534,19 @@ cycst:
   stw 0,{V_CYC}(8)
 cycok:
 """ if CYCLE else ""
-    # ruleta: cruceta arriba (o abajo, si hay ruleta de rayos) mantenida o recién soltada -> modo ruleta (r31 = 4)
-    wcheck = f"""  or 3,4,6
-  lhz 0,{P['pbtn']}(30)
-  rlwinm 0,0,6,17,17
-  ori 0,0,0x{UP:x}
-  and. 3,3,0
+    # ruleta: solo cuando el juego la tiene abierta de verdad -> modo ruleta (r31 = 4)
+    wcheck = f"""  lwz 3,{P['wmb']}(30)
+  lwz 3,0(3)
+  cmpwi 3,0
+  bge wno
+  lhz 0,{P['wmo']}(30)
+  lwzx 3,3,0
+  lhz 0,{P['wmv']}(30)
+  cmpw 3,0
+  bne wno
   li 31,4
-  bne ctxnone
-  li 31,2
+  b ctxnone
+wno:
 """ if WHEEL else ""
     wdisp = """  cmpwi 31,3
   bgt wheel
