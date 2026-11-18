@@ -1,4 +1,4 @@
-# Mod Classic Controller para Metroid Prime Trilogy (pre1.0)
+# Mod Classic Controller para Metroid Prime Trilogy (pre1.1)
 
 Código Gecko para jugar a **Metroid Prime Trilogy** (Wii, PAL **R3MP01**) con el **mando clásico**: Metroid Prime,
 Metroid Prime 2: Echoes, Metroid Prime 3: Corruption y el menú de Trilogy, todo en un solo código.
@@ -17,7 +17,7 @@ Metroid Prime 2: Echoes, Metroid Prime 3: Corruption y el menú de Trilogy, todo
 1. Activa los trucos: *Configuración → General → Habilitar trucos*.
 2. Copia `R3MP01.ini` en `Documentos\Dolphin Emulator\GameSettings\` (guarda antes el tuyo si ya tenías uno).
 3. Pon el Wiimote 1 como *Wiimote emulado* con el **Mando Clásico** como extensión.
-4. En *Propiedades → Códigos Gecko* del juego, activa **solo** «Classic Controller pre1.0».
+4. En *Propiedades → Códigos Gecko* del juego, activa **solo** «Classic Controller pre1.1».
 
 ## Instalar en la Wii (USB Loader GX)
 1. Copia `R3MP01.gct` a `SD:/codes/R3MP01.gct` (quita antes cualquier otro R3MP01.gct que haya ahí).
@@ -30,7 +30,7 @@ Metroid Prime 2: Echoes, Metroid Prime 3: Corruption y el menú de Trilogy, todo
 3. Conecta el mando clásico al Wiimote antes de arrancar el juego. **No toques los sticks mientras arranca:** la Wii
    toma esa posición como el centro.
 4. Si el cargador dice que no encuentra el archivo de trucos: copia `R3MP01.txt` a `SD:/txtcodes/`, abre el gestor
-   de trucos del juego en USB Loader GX, marca «Classic Controller pre1.0» y crea el GCT desde ahí (sale igual que
+   de trucos del juego en USB Loader GX, marca «Classic Controller pre1.1» y crea el GCT desde ahí (sale igual que
    `R3MP01.gct`).
 
 ## Controles
@@ -76,7 +76,7 @@ Metroid Prime 2: Echoes, Metroid Prime 3: Corruption y el menú de Trilogy, todo
 | Clásico | Acción |
 |---|---|
 | Stick izquierdo | Moverse |
-| Stick derecho | Cámara, con la mira siempre en el centro · en las ruletas: elegir opción (tras 0,7 s sin tocarlo vuelve al centro) |
+| Stick derecho | Cámara, con la mira siempre en el centro · en las ruletas: elegir opción (tras 0,5 s sin tocarlo vuelve al centro) |
 | Stick izquierdo en las secciones con la mano (MP3) | Mover la mano; el stick derecho sigue con la cámara |
 | A / R | Disparar (mantener = cargar) |
 | ZR | Misil |
@@ -118,6 +118,6 @@ Metroid Prime 2: Echoes, Metroid Prime 3: Corruption y el menú de Trilogy, todo
 - **No caben otros códigos grandes:** el mod ocupa 2984 de los 3272 B que admite Dolphin.
 
 ## Cómo está hecho
-El mod completo ocupa 4144 B, más de lo que cabe, así que el código va **comprimido** (2984 B) y se descomprime solo
+El mod completo ocupa 4152 B, más de lo que cabe, así que el código va **comprimido** (2984 B) y se descomprime solo
 en memoria libre al arrancar. La lógica de los controles se escribe una vez y la comparten los tres juegos; cada juego
 solo aporta sus direcciones. Para regenerarlo: `pip install keystone-engine` y `python src/base.py out`.
